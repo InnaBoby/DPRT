@@ -41,7 +41,7 @@ img_gen_3.safety_checker = None # we don't need safety checker. you can add not 
 img_gen_3 = img_gen_3.to("cuda")
 
 
-def generate_video_preview(video: mp4, author_comments: str, tags: str): # -> List[BytesIO])  # Список сгенерированных превью-картинок
+def generate_video_preview(video, author_comments = None, tags = None): # -> List[BytesIO])  # Список сгенерированных превью-картинок
 
   ##create a folder to store extracted images
 
@@ -58,14 +58,15 @@ def generate_video_preview(video: mp4, author_comments: str, tags: str): # -> Li
       count += 1
   
   # create descriptions for images
-  file_names = [f for f in listdir('/content/images_from_video') if isfile(join('/content/images_from_video', f))]
+  file_names = [f for f in listdir(f'{folder}') if isfile(join(f'{folder}', f))]
   file_names.sort()
   indx = []
   for i in range(0, len(file_names), 25):
     indx.append(i)
   
+  img_description = []
   for file in indx:
-    img = Image.open(f'/content/images_from_video/frame{file}.jpg').convert('RGB')
+    img = Image.open(f'{folder}/frame{file}.jpg').convert('RGB')
 
     inputs = processor(img, return_tensors="pt").to("cuda")
 
@@ -77,6 +78,7 @@ def generate_video_preview(video: mp4, author_comments: str, tags: str): # -> Li
   
   #summary
   video_summ = pipe(text[0:1000], max_length=130, min_length=30, do_sample=False)
+
 
 
   #summary author_comments
@@ -109,7 +111,7 @@ def generate_video_preview(video: mp4, author_comments: str, tags: str): # -> Li
     elif len(author_comments)<=35:
       tr_author = tr_pipe(author_comments)
   elif author_comments is None:
-    tr_author = tr_pipe('обложка')
+    tr_author = tr_pipe('картинка')
 
   if tags is not None:
     tags = tr_pipe(tags)
@@ -129,10 +131,10 @@ def generate_video_preview(video: mp4, author_comments: str, tags: str): # -> Li
   neg_prompt = "lowres, bad anatomy, error body, error hair, error arm, error hands, bad hands, error fingers, bad  fingers, missing fingers, error legs, bad legs, multiple legs, missing legs, error lighting, error shadow, error reflection, text, error, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry"
   # we don't need autocast here, because autocast will make speed slow down.
   image = img_gen_3.text2img(prompt,negative_prompt=neg_prompt, width=512,height=768,max_embeddings_multiples=5,guidance_scale=12).images[0]
-  image.save("video_cover.png")
+  image.save("video.png")
 
   #convert from *.png to BytesIO:
-  with open('video_cover.png', 'rb') as f:
+  with open('video.png', 'rb') as f:
     video_byte = f.read()
 
 
@@ -140,8 +142,11 @@ def generate_video_preview(video: mp4, author_comments: str, tags: str): # -> Li
 
 
 
-def generate_avatar_photo(avatar_description: str): # -> List[BytesIO]:  # Список сгенерированных аватарок
-  #summary avatar_description
+def generate_avatar_photo(avatar, avatar_description = None): # -> List[BytesIO]:  # Список сгенерированных аватарок
+  
+	#foto with style
+
+	#summary avatar_description
   if avatar_description is not None:
 
     if len(avatar_description)>35:
@@ -195,7 +200,7 @@ def generate_avatar_photo(avatar_description: str): # -> List[BytesIO]:  # Сп�
 
 
 
-def generate_channel_background_image(channel_background_image_description: str): # -> List[BytesIO]:  # Список сгенерированных задних фонов для канала
+def generate_channel_background_image(channel_background_image_description = None): # -> List[BytesIO]:  # Список сгенерированных задних фонов для канала
    #summary generate_channel_background_image
   if channel_background_image_description is not None:
 
