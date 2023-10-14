@@ -43,15 +43,17 @@ img_gen_3 = DiffusionPipeline.from_pretrained("animelover/novelai-diffusion", cu
 img_gen_3.safety_checker = None # we don't need safety checker. you can add not safe words to negative prompt instead.
 img_gen_3 = img_gen_3.to("cuda")
 
+#create folder for images from video
+folder = 'images_from_video'  
+os.mkdir(folder)
 
 
 def generate_video_preview(video, author_comments = None, tags = None): # -> List[BytesIO])  # Список сгенерированных превью-картинок
 
-  ##create a folder to store extracted images
+  #extracted images from video
 
   folder = 'images_from_video'  
-  os.mkdir(folder)
-
+  
   vidcap = cv2.VideoCapture(video)
   count = 0
   while True:
@@ -141,6 +143,8 @@ def generate_video_preview(video, author_comments = None, tags = None): # -> Lis
   with open('video.png', 'rb') as f:
     video_byte = f.read()
 
+  for f in os.listdir(dir):
+    os.remove(os.path.join(dir, f))
 
   return video_byte
 
@@ -256,8 +260,7 @@ def generate_channel_background_image(channel_background_image_description = Non
 
 def choose_cover_from_video (video):
   folder = 'images_from_video'  
-  os.mkdir(folder)
-
+ 
   vidcap = cv2.VideoCapture(video)
   count = 0
   while True:
@@ -302,5 +305,9 @@ def choose_cover_from_video (video):
   for i in df['indx_video'][df['distance'] == min(dictance_with_prompt)]:
     with open(f'{folder}/frame{i}.jpg', 'rb') as f:
       cover = f.read()
+  
+  #clean folder
+  for f in os.listdir(dir):
+    os.remove(os.path.join(dir, f))
   
   return cover
