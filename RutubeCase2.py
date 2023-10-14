@@ -250,4 +250,53 @@ def generate_channel_background_image(channel_background_image_description = Non
 
 
 
+def choose_cover_from_video (video):
+  folder = 'images_from_video'  
+  os.mkdir(folder)
 
+  vidcap = cv2.VideoCapture(video)
+  count = 0
+  while True:
+      success,image = vidcap.read()
+      if not success:
+          break
+      cv2.imwrite(os.path.join(folder,"frame{:d}.jpg".format(count)), image)     # save frame as JPEG file
+      count += 1
+  
+  # create descriptions for images
+  file_names = [f for f in listdir(f'{folder}') if isfile(join(f'{folder}', f))]
+  file_names.sort()
+  indx = []
+  for i in range(0, len(file_names), 25):
+    indx.append(i)
+  
+  img_description = []
+  for file in indx:
+    img = Image.open(f'{folder}/frame{file}.jpg').convert('RGB')
+
+    inputs = processor(img, return_tensors="pt").to("cuda")
+
+    out = model_desc_for_img.generate(**inputs)
+    img_description.append(processor.decode(out[0], skip_special_tokens=True))
+
+  #concat descriptions
+  text = ' '.join(img_description)
+  
+  #summary
+  video_summ = pipe(text[0:1000], max_length=130, min_length=30, do_sample=False)
+  for x in video_summ[0].values():
+    prompt = str(x)
+
+  dictance_with_prompt = []
+  for sentence in img_description:
+    dictance_with_prompt.append(distance(prompt.split(), sentence.split()))
+
+  d = {'indx_video': indx, 'img_description': img_description, 'distance' : dictance_with_prompt}
+  df = pd.DataFrame(data=d)
+  df['indx_video'][df['distance'] == min(dictance_with_prompt)]
+
+  for i in df['indx_video'][df['distance'] == min(dictance_with_prompt)]:
+    with open(f'{folder}/frame{i}.jpg', 'rb') as f:
+      cover = f.read()
+  
+  return cover
