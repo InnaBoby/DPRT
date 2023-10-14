@@ -18,7 +18,8 @@ from PIL import Image
 import os
 import cv2
 
-
+!pip install levenshtein
+from Levenshtein import distance
 
 #summarizing model
 tokenizer = AutoTokenizer.from_pretrained("IlyaGusev/rubert_telegram_headlines", do_lower_case=False, do_basic_tokenize=False, strip_accents=False)
