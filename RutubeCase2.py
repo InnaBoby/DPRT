@@ -1,12 +1,14 @@
-!pip install transformers
+import sys
+
+%pip install transformers
 from transformers import pipeline, AutoTokenizer, EncoderDecoderModel, BlipProcessor, BlipForConditionalGeneration
 
 import torch
 
-!pip install sentencepiece
+%pip install sentencepiece
 import sentencepiece
 
-!pip install --upgrade diffusers[torch]
+%pip install --upgrade diffusers[torch]
 from diffusers import DiffusionPipeline, StableDiffusionPipeline
 
 import pandas as pd
@@ -18,28 +20,29 @@ from PIL import Image
 import os
 import cv2
 
-!pip install levenshtein
+%pip install levenshtein
 from Levenshtein import distance
 
 #summarizing model
 tokenizer = AutoTokenizer.from_pretrained("IlyaGusev/rubert_telegram_headlines", do_lower_case=False, do_basic_tokenize=False, strip_accents=False)
-model = EncoderDecoderModel.from_pretrained("IlyaGusev/rubert_telegram_headlines", device = torch.device('cuda'))
+model = EncoderDecoderModel.from_pretrained("IlyaGusev/rubert_telegram_headlines").to('cuda')
 
 #translating model
 tokenizer_tr = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-ru-en")
-tr_pipe = pipeline("translation", model="Helsinki-NLP/opus-mt-ru-en", tokenizer = tokenizer_tr, device = torch.device('cuda'))
+tr_pipe = pipeline("translation", model="Helsinki-NLP/opus-mt-ru-en", tokenizer = tokenizer_tr, device = device)
 
 #create descriptions for images
 processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
-model_desc_for_img = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large").to("cuda")
+model_desc_for_img = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large").to('cuda')
 
 #summary for descroptions for images
-pipe = pipeline("summarization", model="facebook/bart-large-cnn")
+pipe = pipeline("summarization", model="facebook/bart-large-cnn", device = device)
 
-#generating model ANIME STYLE
+#generating model #3 ANIME STYLE
 img_gen_3 = DiffusionPipeline.from_pretrained("animelover/novelai-diffusion", custom_pipeline="lpw_stable_diffusion", torch_dtype=torch.float16, use_auth_token="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")
 img_gen_3.safety_checker = None # we don't need safety checker. you can add not safe words to negative prompt instead.
 img_gen_3 = img_gen_3.to("cuda")
+
 
 
 def generate_video_preview(video, author_comments = None, tags = None): # -> List[BytesIO])  # Список сгенерированных превью-картинок
