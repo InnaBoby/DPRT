@@ -143,8 +143,8 @@ def generate_video_preview(video, author_comments = None, tags = None): # -> Lis
   with open('video.png', 'rb') as f:
     video_byte = f.read()
 
-  for f in os.listdir(dir):
-    os.remove(os.path.join(dir, f))
+  for f in os.listdir(folder):
+    os.remove(os.path.join(folder, f))
 
   return video_byte
 
@@ -257,10 +257,9 @@ def generate_channel_background_image(channel_background_image_description = Non
   return background_byte
 
 
-
 def choose_cover_from_video (video):
   folder = 'images_from_video'  
- 
+  
   vidcap = cv2.VideoCapture(video)
   count = 0
   while True:
@@ -302,12 +301,16 @@ def choose_cover_from_video (video):
   df = pd.DataFrame(data=d)
   df['indx_video'][df['distance'] == min(dictance_with_prompt)]
 
+  
   for i in df['indx_video'][df['distance'] == min(dictance_with_prompt)]:
+    with Image.open(f'{folder}/frame{i}.jpg') as im:
+      im.save('cover.png')
     with open(f'{folder}/frame{i}.jpg', 'rb') as f:
       cover = f.read()
+      
   
   #clean folder
-  for f in os.listdir(dir):
-    os.remove(os.path.join(dir, f))
-  
+  for f in os.listdir(folder):
+      os.remove(os.path.join(folder, f))
   return cover
+
